@@ -1,0 +1,52 @@
+@media screen and (max-width: 768px) {
+  .navbar-steem-engine {
+    background-size: 1366px 93px;
+  }
+  .navbar-steem-engine button {
+    margin: 0 auto 15px;
+  }
+  .home-1 {
+    padding: 50px 25px 25px 25px;
+  }
+  table.tokensTable {
+    top: 0;
+  }
+  .tokens-container {
+    overflow-x: scroll;
+    margin-top: -35px;
+  }
+  .ordertable-container {
+    overflow-x: scroll;
+  }
+  #page_container {
+    margin-top: 93px !important;
+  }
+  header {
+    padding-left: 25px;
+    padding-right: 25px;
+  }
+  header .group {
+    display: block;
+    padding-right: 0;
+    width: 100%;
+  }
+  header .buttons {
+    display: block !important; 
+  }
+  header .buttons .btn {
+    font-size: 16px;
+    margin-top: 5px;
+  }
+  header .header-row {
+    padding-top: 20px;
+  }
+  header h1 {
+    font-size: 24px;
+  }
+  header p {
+    font-size: 16px;
+  }
+  .faq-section-title {
+    margin-left: 0;
+  }
+}

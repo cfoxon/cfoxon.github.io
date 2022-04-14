@@ -1,0 +1,136 @@
+<header>
+	<div class="row header-row">
+		<div class="col-md-6">
+			<h1><%= data.account == SE.User.name ? 'MY' : '@' + filterXSS(data.account) + "'s" %> TOKEN WALLET</h1>
+			<span id="total-wallet-value">Est. Value: $<span id="wallet-value-amount">0</span> USD</span>
+		</div>
+		<div class="col-md-6">
+			<div class="buttons">
+				<% if(SE.User) { %>
+					<button class="btn btn-primary" onclick="SE.ShowDialog('deposit_tokens');">DEPOSIT</button>
+					<button class="btn btn-secondary" onclick="SE.ShowDialog('withdraw_tokens');">WITHDRAW</button>
+					<div class="note">NOTE: There is a 1% fee on all deposits and withdrawals.</div>
+				<% } %>
+			</div>
+		</div>
+	</div>
+</header>
+
+<div class="container-fluid" style="overflow-x: auto;">
+  <table id="balances_table" class="tokensTable <%= data.account == SE.User.name ? 'interactiveTable' : '' %>" data-sorting="true"></table>
+</div>
+
+<script>
+	
+	function IconColumn(value, options, rowdata) { 
+		const token = SE.GetToken(value);
+		const scotConfig = (Object.keys(SE.User.ScotTokens).length && typeof SE.User.ScotTokens[value] !== 'undefined') ? SE.User.ScotTokens[value] : null;
+		const delegationEnabled = token.delegationEnabled ? token.delegationEnabled : false;
+		const stakingEnabled = token.stakingEnabled ? token.stakingEnabled : false;
+		const userToken = SE.User.balances.find(t => t.symbol === value);
+
+		const delegationsIn = userToken && userToken.delegationsIn ? parseFloat(userToken.delegationsIn).toFixed(token.precision) : 0;
+		const delegationsOut = userToken && userToken.delegationsOut ? parseFloat(userToken.delegationsOut).toFixed(token.precision) : 0;
+		const pendingUnstake = userToken && userToken.pendingUnstake ? parseFloat(userToken.pendingUnstake).toFixed(token.precision) : 0;
+		const pendingUndelegations = userToken && userToken.pendingUndelegations ? parseFloat(userToken.pendingUndelegations).toFixed(token.precision) : 0;
+	    const token_data = data.find(d => d.symbol == rowdata.symbol);
+		return `<i class="fas fa-info-circle" title="Token information" onclick="SE.ShowDialog('token_info', SE.GetToken('${value}'));"></i>&nbsp;&nbsp;&nbsp;
+			<i class="fas fa-exchange-alt" title="Token market" onclick="SE.ShowMarket('${value}');"></i>&nbsp;&nbsp;&nbsp;
+			<i class="fas fa-share-square" title="Send tokens" onclick="SE.ShowSendTokenDialog('${value}', ${rowdata.balance});"></i>&nbsp;&nbsp;&nbsp; 
+			<i class="fas fa-list-ul" title="Show token history" onclick="SE.ShowHistory('${value}', '${rowdata.name}')"></i>
+			${token.stakingEnabled && rowdata.balance > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-lock" title="Stake Tokens" onclick="SE.ShowStakeDialog('${value}', ${rowdata.balance})"></i>` : ``}
+        ${token.stakingEnabled && parseFloat(token_data.availableStake) > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-unlock" title="Unstake Tokens" onclick="SE.ShowUnstakeDialog('${value}', ${rowdata.stake})"></i>` : ``}
+			${token.issuer === SE.User.name && !stakingEnabled ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-gem" title="Enable Staking" onclick="SE.ShowEnableStakeDialog('${value}')"></i>` : ''}
+			${pendingUnstake > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-eye" title="View pending unstakes" onclick="SE.ShowHomeView('pending_unstakes')"></i>` : ``}
+			${pendingUndelegations > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-divide" title="View pending undelegations" onclick="SE.ShowHomeView('pending_undelegations')"></i>` : ``}
+			${scotConfig && scotConfig.pending_token > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-hand-holding-usd" onclick="SE.ClaimToken('${value}')" title="Claim ${value} tokens"></i>` : ``}
+        ${delegationEnabled && token.stakingEnabled && parseFloat(token_data.availableStake) > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-arrows-alt-h" onclick="SE.ShowDelegateDialog('${value}', ${rowdata.stake})" title="Delegate ${token_data.availableStake} tokens"></i>` : ``}
+			${token.issuer === SE.User.name && !delegationEnabled && stakingEnabled ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-dolly" title="Enable Delegation" onclick="SE.ShowEnableDelegationDialog('${value}')"></i>` : ''}
+			${delegationEnabled && delegationsOut > 0 ? `&nbsp;&nbsp;&nbsp;<i class="fas fa-folder-minus" title="Undelegate Tokens" onclick="SE.ShowUndelegateDialog('${value}', ${delegationsOut})"></i>` : ``}
+			`; 
+	}
+
+	function SymbolColumn(value, options, rowdata) { 
+		const token = SE.GetToken(value);
+
+		if(token && token.metadata && token.metadata.icon)
+			return '<img class="icon" src="' + token.metadata.icon + '"/>';
+		else
+			return ''; 
+	}
+
+	function BalanceColumn(value, options, rowdata) { return addCommas(value); }
+	function USDValueColumn(value, options, rowdata) { return '<span class="' + (rowdata.priceChangePercent > 0 ? 'green' : (rowdata.priceChangePercent < 0 ? 'red' : '')) + '">' + usdFormat(value * SE.Tokens.find(t => t.symbol == rowdata.symbol).lastPrice, 2) + '</span>'; }
+	function PctColumn(value, options, rowdata) { return '<span class="' + (value > 0 ? 'green' : (value < 0 ? 'red' : '')) + '">' + value.toFixed(2) + '%</span>'; }
+	
+	function StakeColumn(value, options, rowdata) {
+    if(!value || isNaN(parseFloat(value)))
+      value = 0;
+
+		const token = SE.GetToken(rowdata.symbol);
+		const parsedAmount = parseFloat(value);
+
+		if (typeof token.stakingEnabled !== 'undefined' && token.stakingEnabled) {
+            const stakeBalanceStr = +value.toFixed(token.precision);
+			var text = `<span>${stakeBalanceStr}`;
+			var token_data = data.find(d => d.symbol == rowdata.symbol);
+
+            if (token_data.availableStake != stakeBalanceStr) {
+		      text += ' (' + (+parseFloat(token_data.availableStake)) + ')';
+            }
+
+			return text + '</span>';
+		}
+
+		return '<span>--</span>';;
+	}
+
+	var data = <%= JSON.stringify(data.balances.filter(b => !Config.DISABLED_TOKENS.includes(b.symbol))) %>;
+	
+	data = data.map(d => {
+		const token = SE.Tokens.find(t => t.symbol == d.symbol);
+        let availableStake = d.stake;
+        let lockedStake = 0;
+        if (token.stakingEnabled) {
+          lockedStake = SE.User.pendingUnstakes.filter(unstake => unstake.symbol === d.symbol && unstake.numberTransactionsLeft > 1).map(unstake => parseFloat(unstake.quantityLeft) - parseFloat((parseFloat(unstake.quantity) / token.numberTransactions).toFixedNoRounding(token.precision))).reduce((x,y) => x+y, 0);
+          availableStake = Math.max(0, parseFloat(availableStake) - lockedStake).toFixed(token.precision);
+        }
+
+		const scotConfig = (Object.keys(SE.User.ScotTokens).length && typeof SE.User.ScotTokens[token.symbol] !== 'undefined') 
+			? SE.User.ScotTokens[token.symbol] : null;
+
+		return Object.assign(d, { 
+			name: token.name, 
+			lastPrice: token.lastPrice, 
+			priceChangePercent: token.priceChangePercent,
+			usdValue: usdFormat(d.balance * token.lastPrice, 2),
+            availableStake: availableStake,
+            lockedStake: lockedStake,
+			scotConfig
+		});
+	});
+
+	data.sort((a, b) => b.balance * b.lastPrice * window.steem_price - a.balance * a.lastPrice * window.steem_price);
+
+	var totalInUsd = 0.00;
+	data.forEach(function(o) {
+		var amount = parseFloat(o.usdValue.replace('$', '').replace(',', ''));
+		totalInUsd += amount;
+	});
+
+	$('#wallet-value-amount').text(addCommas(totalInUsd.toFixed(2)));
+
+	$('#balances_table').footable({
+		"columns": [
+			{ "name": "symbol", "title": "", "classes": "icon", "formatter": SymbolColumn },
+			{ "name": "symbol", "classes": "symbol", "title": "Symbol" },
+			{ "name": "name", "title": "Token Name" },
+			{ "name": "balance", "title": "Balance", "type": "number", "classes": "text-right", "formatter": BalanceColumn },
+			{ "name": "balance", "title": "USD Value", "type": "number", "classes": "text-right bold", "formatter": USDValueColumn },
+			{ "name": "priceChangePercent", "title": "% Chg", "type": "number", "classes": "text-right bold", "formatter": PctColumn },
+			{ "name": "stake", "title": "Staked", "type": "number", "classes": "text-right bold", "formatter": StakeColumn },
+			{ "name": "symbol", "title": "", "classes": "icons", "formatter": IconColumn }
+		],
+		"rows": data
+	});
+</script>

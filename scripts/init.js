@@ -1,0 +1,1 @@
+const ssc = new SSC(Config.RPC_URL);
