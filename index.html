@@ -1,12 +1,120 @@
-<!DOCTYPE html>
 <html>
+
 <head>
-<title>Women's Rights Are Human Rights</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0">
+    <link rel="icon" type="image/png" href="images/hive_engine.png">
+    <!--<base href="/">-->
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.23.0/moment.js" integrity="sha256-l6SU+rVSlkyIcMsqjy0mb6ne/qPpYotdVSFd9vLmV1A=" crossorigin="anonymous"></script>
+    <script src="scripts/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="scripts/xss.min.js"></script>
+    <script src="scripts/ssc.min.js"></script>
+    <script src="scripts/footable.min.js"></script>
+    <link rel="stylesheet" href="styles/footable.bootstrap.min.css" />
+    <script src="scripts/hive.min.js"></script>
+
+    <script src="scripts/Config-Dev.js?v=x2021j"></script>
+    <script src="scripts/init.js?v=x2021j"></script>
+    <script src="scripts/utils.js?v=x2021j"></script>
+    <script src="scripts/SE.js?v=x2021j"></script>
+    <script src="scripts/render.js?v=x2021j"></script>
+
+    <script src="scripts/chartjs-chart-financial/controller.financial.js"></script>
+    <script src="scripts/chartjs-chart-financial/element.financial.js"></script>
+    <script src="scripts/chartjs-chart-financial/element.candlestick.js"></script>
+    <script src="scripts/chartjs-chart-financial/controller.candlestick.js"></script>
+    <script src="scripts/chartjs-chart-financial/scale.financialLinear.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.4"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.min.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="styles/main.css?v=25062025" />
+    <link rel="stylesheet" href="styles/mobile.css?v=23062019" />
+    <title>Hive Engine - Smart Contracts on the Hive blockchain</title>
 </head>
+
 <body>
-<h3>Women's rights are human rights</h3>
-<a href="https://www.reddit.com/r/StrikeForRoe/">https://www.reddit.com/r/StrikeForRoe/</a></br>
-<a href="https://hivel.ink/@foxon/right-to-privacy-whats-that">https://hivel.ink/@foxon/right-to-privacy-whats-that</a></br>
-<a href="https://www.prochoiceamerica.org/">https://www.prochoiceamerica.org/</a></br>
+    <nav class="navbar navbar navbar-expand-lg navbar-steem-engine fixed-top">
+        <a class="navbar-brand" href="#" onclick="SE.ShowHome()"><img src="images/logo-dark.png"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="navbar-nav w-100 justify-content-end align-items-center">
+                <a id="nav_wallet" class="nav-item nav-link" href="javascript:void(0);" onclick="SE.ShowBalances();" style="display: none;">WALLET</a>
+                <a class="nav-item nav-link" href="javascript:void(0);" onclick="SE.ShowTokens();">TOKENS</a>
+                <a class="nav-item nav-link" href="javascript:void(0);" onclick="SE.ShowMarket();">MARKET</a>
+                <a class="nav-item nav-link" href="#" target="_blank">STO</a>
+                <a class="nav-item nav-link" href="javascript:void(0);" onclick="SE.ShowFAQ();">FAQ</a>
+                <a class="nav-item nav-link explorer-link" href="https://he.dtools.dev/" target="_blank">EXPLORER</a>
+
+                <button id="btnSignIn" class="btn" onclick="SE.ShowSignIn();" style="margin-left: 50px;">SIGN IN</button>
+
+                <div id="ddlLoggedIn" class="nav-item dropdown" style="display: none; margin-left: 40px;">
+                    <a class="nav-link dropdown-toggle p-0" href="#" id="lnkUsername" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+                    <div class="dropdown-menu" aria-labelledby="lnkUsername">
+                        <a class="dropdown-item" onclick="SE.LogOut();">Log Out</a>
+                        <a class="dropdown-item" onclick="SE.ShowRewards();">Rewards</a>
+                        <a class="dropdown-item" onclick="SE.ShowOpenOrders();">Open Orders</a>
+                        <a class="dropdown-item" onclick="SE.ShowConversionHistory();">Conversion History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div style="margin-top: 60px;">
+        <div class="row">
+            <div class="alert alert-warning" style="width:100%; display: none;">
+                <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                 SWAP.HIVE withdrawals will be under maintenance for ~30 mins around 00:30 (UTC+0) to prepare for HF24.
+            </div>
+        </div>
+        <div id="page_container" style="min-height: 600px; margin-top: 0px;"></div>
+    </div>
+
+    <footer>
+        <div>
+            <div class="d-flex align-items-center justify-content-end">
+                <p class="text-right m-0">
+                    Have a question?
+                    <br /> Chat with us on Discord:
+                </p>
+                <a href="https://discord.gg/xWRYB9s" target="_blank"><img src="images/social_discord.svg" /></a>
+            </div>
+            <div class="d-flex justify-content-end">
+                <p class="text-right m-0 supportLabel">
+                    Having issues?
+                    <br /> Create a support ticket:
+                </p>
+                <a href="https://support.privex.io/open.php" target="_blank"><i class="fas fa-tools supportIcon fa-3x"></i></a>
+            </div>
+            <p class="copyright">2020 Hive Engine, all rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="dialog_container" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+
+    </div>
+
+    <div id="toast_container" style="position: fixed; top: 70; right: 20; z-index: 5000;">
+
+    </div>
+
+
+
 </body>
+
 </html>
